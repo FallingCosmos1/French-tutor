@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonjour Claude</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cream: #f7f3ed;
+    --ink: #1a1612;
+    --muted: #7a6f65;
+    --accent: #c4632a;
+    --accent-light: #f0e0d4;
+    --green: #2d6a4f;
+    --green-light: #d8f0e5;
+    --red: #8b2020;
+    --red-light: #f5dada;
+    --border: rgba(26,22,18,0.12);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .setup-card {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 1.5rem;
+  }
+
+  .setup-card label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .setup-card input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .setup-card input:focus {
+    border-color: var(--accent);
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 1rem;
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+
+  .btn-stop {
+    background: var(--ink);
+    color: white;
+  }
+
+  .main-card {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    display: none;
+  }
+
+  .status-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    border: 3px solid var(--border);
+    background: var(--cream);
+    transition: all 0.4s ease;
+    position: relative;
+  }
+
+  .status-ring.listening {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    animation: pulse 2.5s infinite;
+  }
+
+  .status-ring.recording {
+    border-color: var(--red);
+    background: var(--red-light);
+    animation: pulse-fast 1s infinite;
+  }
+
+  .status-ring.thinking {
+    border-color: #888;
+    background: #f0f0f0;
+    animation: spin-border 1.5s linear infinite;
+  }
+
+  .status-ring.speaking {
+    border-color: var(--green);
+    background: var(--green-light);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(196,99,42,0.2); }
+    50% { box-shadow: 0 0 0 16px rgba(196,99,42,0); }
+  }
+
+  @keyframes pulse-fast {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(139,32,32,0.3); }
+    50% { box-shadow: 0 0 0 12px rgba(139,32,32,0); }
+  }
+
+  @keyframes spin-border {
+    0% { border-top-color: #888; border-right-color: #ccc; border-bottom-color: #ccc; border-left-color: #ccc; }
+    25% { border-top-color: #ccc; border-right-color: #888; border-bottom-color: #ccc; border-left-color: #ccc; }
+    50% { border-top-color: #ccc; border-right-color: #ccc; border-bottom-color: #888; border-left-color: #ccc; }
+    75% { border-top-color: #ccc; border-right-color: #ccc; border-bottom-color: #ccc; border-left-color: #888; }
+    100% { border-top-color: #888; border-right-color: #ccc; border-bottom-color: #ccc; border-left-color: #ccc; }
+  }
+
+  .status-label {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    min-height: 1.4em;
+  }
+
+  .status-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+    min-height: 1.2em;
+    margin-bottom: 1.5rem;
+  }
+
+  .transcript-box {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    text-align: left;
+    min-height: 60px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .transcript-box.you {
+    border-left: 3px solid var(--accent);
+  }
+
+  .transcript-box.claude {
+    border-left: 3px solid var(--green);
+    display: none;
+  }
+
+  .transcript-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .word-of-day {
+    background: var(--accent-light);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .word-of-day .label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+
+  .word-of-day .word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-style: italic;
+    margin-bottom: 0.15rem;
+  }
+
+  .word-of-day .definition {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .correction-box {
+    background: #fff8f0;
+    border: 0.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    text-align: left;
+    display: none;
+  }
+
+  .tip {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .sensitivity-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .sensitivity-row label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .sensitivity-row input[type=range] {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .error-msg {
+    color: var(--red);
+    font-size: 0.82rem;
+    text-align: center;
+    margin-top: 0.75rem;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Bonjour, Claude</h1>
+<p class="subtitle">Votre professeur de français</p>
+
+<!-- Setup screen -->
+<div class="setup-card" id="setupCard">
+  <label>Your Claude API Key</label>
+  <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" />
+  <div class="sensitivity-row" style="margin-top:1rem;">
+    <label>Wake word sensitivity</label>
+    <input type="range" min="1" max="5" value="3" id="sensitivity" />
+    <label id="sensVal">3</label>
+  </div>
+  <button class="btn btn-primary" onclick="startListening()">Start — Commencer</button>
+  <p class="error-msg" id="errorMsg"></p>
+</div>
+
+<!-- Main screen -->
+<div class="main-card" id="mainCard">
+
+  <div class="word-of-day" id="wordBox" style="display:none;">
+    <div class="label">Mot du jour</div>
+    <div class="word" id="wordFr">—</div>
+    <div class="definition" id="wordDef">—</div>
+  </div>
+
+  <div class="status-ring listening" id="statusRing">🎧</div>
+  <div class="status-label" id="statusLabel">En écoute…</div>
+  <div class="status-hint" id="statusHint">Say "Bonjour Claude" to begin</div>
+
+  <div class="transcript-box you" id="youBox">
+    <div class="transcript-label">Vous</div>
+    <div id="youText"></div>
+  </div>
+
+  <div class="correction-box" id="correctionBox"></div>
+
+  <div class="transcript-box claude" id="claudeBox">
+    <div class="transcript-label">Claude</div>
+    <div id="claudeText"></div>
+  </div>
+
+  <button class="btn btn-stop" onclick="stopAll()">Stop</button>
+
+  <p class="tip">Speak naturally in French or English.<br>Claude will always reply in French.</p>
+</div>
+
+<script>
+const WAKE_PHRASES = ['bonjour claude', 'bonjour claud', 'bonjour clot', 'bonjour clode', 'bon jour claude'];
+const SYSTEM_PROMPT = `You are a warm and encouraging French language tutor called Claude. You are speaking aloud to a learner via a kitchen speaker.
+
+RULES:
+- ALWAYS reply in French, no matter what language the user speaks in.
+- Keep replies SHORT — 1 to 3 sentences maximum. You are speaking aloud, not writing.
+- If the user says something in English, gently respond in French and offer the French equivalent.
+- If the user makes a grammar or vocabulary mistake in French, correct them kindly in your reply. Start your reply with "CORRECTION: [brief correction]" then a newline, then your normal response.
+- Each morning greeting, mention one interesting French word or phrase as "MOT DU JOUR: [word] — [brief definition in English]" on its own line, then your greeting.
+- Be warm, encouraging, and conversational — like a friendly neighbour who speaks French.
+- Never use markdown, bullet points, or formatting. Speak naturally.`;
+
+let apiKey = '';
+let recognition = null;
+let synth = window.speechSynthesis;
+let isRecording = false;
+let isSpeaking = false;
+let isThinking = false;
+let awake = false;
+let silenceTimer = null;
+let fullTranscript = '';
+let conversationHistory = [];
+let sensitivity = 3;
+
+const ring = document.getElementById('statusRing');
+const statusLabel = document.getElementById('statusLabel');
+const statusHint = document.getElementById('statusHint');
+const youBox = document.getElementById('youBox');
+const youText = document.getElementById('youText');
+const claudeBox = document.getElementById('claudeBox');
+const claudeText = document.getElementById('claudeText');
+const correctionBox = document.getElementById('correctionBox');
+
+document.getElementById('sensitivity').addEventListener('input', function() {
+  sensitivity = parseInt(this.value);
+  document.getElementById('sensVal').textContent = sensitivity;
+});
+
+function setStatus(state, label, hint, emoji) {
+  ring.className = 'status-ring ' + state;
+  ring.textContent = emoji;
+  statusLabel.textContent = label;
+  statusHint.textContent = hint;
+}
+
+function startListening() {
+  apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey.startsWith('sk-')) {
+    showError('Please enter a valid API key starting with sk-ant-...');
+    return;
+  }
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showError('Speech recognition not supported. Please use Chrome.');
+    return;
+  }
+  document.getElementById('setupCard').style.display = 'none';
+  document.getElementById('mainCard').style.display = 'block';
+  startRecognition();
+  fetchWordOfDay();
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function startRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'fr-FR';
+
+  recognition.onresult = function(event) {
+    if (isSpeaking || isThinking) return;
+
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) final += t;
+      else interim += t;
+    }
+
+    const combined = (final + interim).toLowerCase().trim();
+
+    if (!awake) {
+      const wakeDetected = WAKE_PHRASES.some(p => combined.includes(p)) ||
+        (sensitivity >= 4 && combined.includes('bonjour')) ||
+        (sensitivity >= 5 && (combined.includes('claude') || combined.includes('claud')));
+
+      if (wakeDetected) {
+        awake = true;
+        fullTranscript = '';
+        setStatus('recording', 'Je vous écoute…', 'Speak now — I\'m listening', '🎤');
+        clearTimeout(silenceTimer);
+      }
+      return;
+    }
+
+    if (awake && !isThinking) {
+      fullTranscript = final || interim;
+      youText.textContent = fullTranscript;
+      youBox.style.display = 'block';
+
+      clearTimeout(silenceTimer);
+      if (final && final.trim().length > 2) {
+        silenceTimer = setTimeout(() => {
+          if (fullTranscript.trim().length > 2) {
+            sendToClaude(fullTranscript.trim());
+          }
+        }, 1800);
+      }
+    }
+  };
+
+  recognition.onend = function() {
+    if (!isSpeaking && !isThinking) {
+      setTimeout(() => { try { recognition.start(); } catch(e){} }, 300);
+    }
+  };
+
+  recognition.onerror = function(e) {
+    if (e.error !== 'no-speech') {
+      setTimeout(() => { try { recognition.start(); } catch(e){} }, 1000);
+    }
+  };
+
+  recognition.start();
+  setStatus('listening', 'En écoute…', 'Say "Bonjour Claude" to begin', '🎧');
+}
+
+async function sendToClaude(text) {
+  awake = false;
+  isThinking = true;
+  clearTimeout(silenceTimer);
+  setStatus('thinking', 'Je réfléchis…', 'Claude is thinking…', '💭');
+  correctionBox.style.display = 'none';
+
+  conversationHistory.push({ role: 'user', content: text });
+  if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        system: SYSTEM_PROMPT,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const reply = data.content[0].text;
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    processAndSpeak(reply);
+  } catch (err) {
+    isThinking = false;
+    setStatus('listening', 'En écoute…', 'Say "Bonjour Claude" to begin', '🎧');
+    youBox.style.display = 'none';
+    recognition.start();
+  }
+}
+
+function processAndSpeak(reply) {
+  let correction = '';
+  let mainText = reply;
+  let motDuJour = '';
+
+  if (reply.startsWith('CORRECTION:')) {
+    const lines = reply.split('\n');
+    correction = lines[0].replace('CORRECTION:', '').trim();
+    mainText = lines.slice(1).join('\n').trim();
+  }
+
+  if (mainText.includes('MOT DU JOUR:')) {
+    const motMatch = mainText.match(/MOT DU JOUR:\s*([^\n]+)/);
+    if (motMatch) {
+      motDuJour = motMatch[1];
+      mainText = mainText.replace(/MOT DU JOUR:[^\n]+\n?/, '').trim();
+      const parts = motDuJour.split('—');
+      if (parts.length >= 2) {
+        document.getElementById('wordFr').textContent = parts[0].trim();
+        document.getElementById('wordDef').textContent = parts[1].trim();
+        document.getElementById('wordBox').style.display = 'block';
+      }
+    }
+  }
+
+  if (correction) {
+    correctionBox.textContent = '✏️ ' + correction;
+    correctionBox.style.display = 'block';
+  }
+
+  claudeText.textContent = mainText;
+  claudeBox.style.display = 'block';
+
+  isThinking = false;
+  isSpeaking = true;
+  setStatus('speaking', 'Je parle…', 'Claude is speaking…', '🔊');
+
+  try { recognition.stop(); } catch(e) {}
+
+  const utter = new SpeechSynthesisUtterance(mainText);
+  utter.lang = 'fr-FR';
+  utter.rate = 0.9;
+  utter.pitch = 1.05;
+
+  const voices = synth.getVoices();
+  const frVoice = voices.find(v => v.lang.startsWith('fr') && v.name.toLowerCase().includes('google')) ||
+                  voices.find(v => v.lang.startsWith('fr'));
+  if (frVoice) utter.voice = frVoice;
+
+  utter.onend = function() {
+    isSpeaking = false;
+    setStatus('listening', 'En écoute…', 'Say "Bonjour Claude" to begin', '🎧');
+    youBox.style.display = 'none';
+    claudeBox.style.display = 'none';
+    try { recognition.start(); } catch(e) { setTimeout(() => { try { recognition.start(); } catch(e){} }, 500); }
+  };
+
+  utter.onerror = function() {
+    isSpeaking = false;
+    setStatus('listening', 'En écoute…', 'Say "Bonjour Claude" to begin', '🎧');
+    try { recognition.start(); } catch(e) {}
+  };
+
+  synth.speak(utter);
+}
+
+async function fetchWordOfDay() {
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 80,
+        messages: [{
+          role: 'user',
+          content: 'Give me one interesting French word or phrase for a language learner today. Reply ONLY in this exact format with nothing else: WORD — English definition (one sentence max)'
+        }]
+      })
+    });
+    const data = await response.json();
+    if (data.content && data.content[0]) {
+      const txt = data.content[0].text.trim();
+      const parts = txt.split('—');
+      if (parts.length >= 2) {
+        document.getElementById('wordFr').textContent = parts[0].trim();
+        document.getElementById('wordDef').textContent = parts.slice(1).join('—').trim();
+        document.getElementById('wordBox').style.display = 'block';
+      }
+    }
+  } catch(e) {}
+}
+
+function stopAll() {
+  try { recognition.stop(); } catch(e) {}
+  synth.cancel();
+  isSpeaking = false;
+  isThinking = false;
+  awake = false;
+  clearTimeout(silenceTimer);
+  document.getElementById('mainCard').style.display = 'none';
+  document.getElementById('setupCard').style.display = 'block';
+}
+
+window.speechSynthesis.onvoiceschanged = function() {};
+</script>
+</body>
+</html>
